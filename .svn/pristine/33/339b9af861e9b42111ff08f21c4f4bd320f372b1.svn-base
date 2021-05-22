@@ -1,0 +1,93 @@
+﻿var perfilKO = new perfilData();
+$(function () {
+    var logged = getAuthorization();
+
+    GetUsuario();
+
+    var datako = $("[data-bind*='perfilKO']");
+
+    for (ct = 0; ct < datako.length; ct++) {
+        var datakoelement = datako[ct];
+        ko.applyBindings(perfilKO, datakoelement);
+    }
+
+
+
+
+});
+
+
+function perfilData() {
+    this.usuarioId = ko.observable("")
+    this.login = ko.observable("")
+    this.nome = ko.observable("");
+    this.tipo = ko.observable("");
+    this.nomeTipo = ko.observable("");
+};
+
+function GetUsuario() {
+
+
+    $.ajax({
+        type: 'GET',
+        url: '../api/values/GetUsuario',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+
+            if (data) {
+
+                    if (data) {
+                        perfilKO.login(data.Login);
+                        perfilKO.nome(data.Nome);
+                        perfilKO.tipo(data.Tipo);
+                        perfilKO.usuarioId(data.UsuarioId);
+
+
+                        if (perfilKO.tipo() == 3) {
+                            $('#GpCadastro').show();
+                            $('#menuPaciente').show();
+                            $('#menuConvenio').show();
+                            $('#menuExame').show();
+                            $('#menuAgendamento').show();
+                            $('#menuAtendimento').show();
+                            $('#GpCadastro').show();
+                            $('#GpAgenda').show();
+                        } else if (perfilKO.tipo() == 2 || perfilKO.tipo() == 4 ) {
+                            $('#GpCadastro').show();
+                            $('#menuHistorico').show();
+                            $('#GpAgenda').show();
+                            $('#menuAgendamento').show();
+                            $('#menuAtendimento').show();
+                            $('#btnCadastrarNovoAgendamento').hide();
+
+                        }
+
+                        if (perfilKO.tipo() == 1) {
+                            perfilKO.nomeTipo('Administrador');
+                        } else if (perfilKO.tipo() == 2) {
+                            perfilKO.nomeTipo('Médico');
+                        } else if (perfilKO.tipo() == 3) {
+                            perfilKO.nomeTipo('Atendente');
+                        } else if (perfilKO.tipo() == 4) {
+                            perfilKO.nomeTipo('Paciente');
+                        }
+
+
+                    }
+     
+            }
+            Loader('hide');
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError();
+        }
+    });
+}

@@ -1,0 +1,36 @@
+﻿<appSettings>
+
+  <add key="DEBUG_MODE" value="True"/>
+  
+  <!--======================================================-->
+
+  <add key="SisclimedConnectionString" value=""/>
+
+  <add key="SisclimedConnectionString" value ="Server=localhost; Initial Catalog=Sisclimed_BD; User ID=sisclimed; Password=sisclimed#88; Connection Timeout = 10;"/>
+
+  <add key="SisclimedConnectionString_Debug" value ="Server=localhost; Initial Catalog=Sisclimed_BD; User ID=sisclimed; Password=sisclimed#88; Connection Timeout = 10;"/>
+  
+  <add key="Site" value ="http://localhost:14459/"/>
+  
+  <add key="SendEmailsDebug" value ="lipenetc@gmail.com"/>
+
+  <add key="SendEmailsTo" value ="lipenetc@gmail.com"/>
+
+  <add key="SendEmailHost" value ="smtp.gmail.com"/>
+
+  <add key="SendEmailPort" value ="587"/>
+
+  <add key="SendEmailUsername" value ="sisclimed@gmail.com"/>
+
+  <add key="SendEmailPassword" value ="sisclimed#88"/>
+
+  <add key="SendEmailSSL" value ="true"/>
+  
+  <!--======================================================-->
+  
+  <add key="webpages:Version" value="3.0.0.0" />
+  <add key="webpages:Enabled" value="false" />
+  <add key="ClientValidationEnabled" value="true" />
+  <add key="UnobtrusiveJavaScriptEnabled" value="true" />
+  
+</appSettings>

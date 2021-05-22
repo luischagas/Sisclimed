@@ -1,0 +1,239 @@
+﻿debugMode = true;
+showAlertError = false;
+
+$(function () {
+
+    if (!window.JSON) {
+        window.JSON = {
+            parse: function (sJSON) { return eval('(' + sJSON + ')'); },
+            stringify: (function () {
+                var toString = Object.prototype.toString;
+                var isArray = Array.isArray || function (a) { return toString.call(a) === '[object Array]'; };
+                var escMap = { '"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t' };
+                var escFunc = function (m) { return escMap[m] || '\\u' + (m.charCodeAt(0) + 0x10000).toString(16).substr(1); };
+                var escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
+                return function stringify(value) {
+                    if (value == null) {
+                        return 'null';
+                    } else if (typeof value === 'number') {
+                        return isFinite(value) ? value.toString() : 'null';
+                    } else if (typeof value === 'boolean') {
+                        return value.toString();
+                    } else if (typeof value === 'object') {
+                        if (typeof value.toJSON === 'function') {
+                            return stringify(value.toJSON());
+                        } else if (isArray(value)) {
+                            var res = '[';
+                            for (var i = 0; i < value.length; i++)
+                                res += (i ? ', ' : '') + stringify(value[i]);
+                            return res + ']';
+                        } else if (toString.call(value) === '[object Object]') {
+                            var tmp = [];
+                            for (var k in value) {
+                                if (value.hasOwnProperty(k))
+                                    tmp.push(stringify(k) + ': ' + stringify(value[k]));
+                            }
+                            return '{' + tmp.join(', ') + '}';
+                        }
+                    }
+                    return '"' + value.toString().replace(escRE, escFunc) + '"';
+                };
+            })()
+        };
+    }
+
+    ko.bindingHandlers.stopBinding = {
+        init: function () {
+            return { controlsDescendantBindings: true };
+        }
+    };
+
+    ko.virtualElements.allowedBindings.stopBinding = true;
+
+    //Modulo Debug
+    if (debugMode == true) {
+
+        $('#lblFavoritos').show();
+        $('#lstGerenciaEnderecos').show();
+        $('#lstConsultaSolicitacao').show();      
+
+    }
+});
+
+
+Date.prototype.toMSJSON = function () {
+    var date = '/Date(' + this.getTime() + '-0000)/';
+    return date;
+};
+
+
+Date.dateDiff = function (datepart, fromdate, todate) {
+    datepart = datepart.toLowerCase();
+    var diff = todate - fromdate;
+    var divideBy = {
+        w: 604800000,
+        d: 86400000,
+        h: 3600000,
+        n: 60000,
+        s: 1000
+    };
+
+    return Math.floor(diff / divideBy[datepart]);
+};
+
+function JSONData(valueA, valueB, valueC, valueD, valueE, valueF, valueG, valueH) {
+    this._valueA = valueA;
+    this._valueB = valueB;
+    this._valueC = valueC;
+    this._valueD = valueD;
+    this._valueE = valueE;
+    this._valueF = valueF;
+    this._valueG = valueG;
+    this._valueH = valueH;
+};
+
+function timeNow(i) {
+    var d = new Date(),
+        h = (d.getHours() < 10 ? '0' : '') + d.getHours(),
+        m = (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+    s = (d.getSeconds() < 10 ? '0' : '') + d.getSeconds();
+    return h + ':' + m + ':' + s;
+};
+
+function validatedate(inputText) {
+    var dateformat = /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/;
+    // Match the date format through regular expression
+    if (inputText.match(dateformat)) {
+        //Test which seperator is used '/' or '-'
+        var opera1 = inputText.split('/');
+        var opera2 = inputText.split('-');
+        lopera1 = opera1.length;
+        lopera2 = opera2.length;
+        // Extract the string into month, date and year
+        if (lopera1 > 1) {
+            var pdate = inputText.split('/');
+        }
+        else if (lopera2 > 1) {
+            var pdate = inputText.split('-');
+        }
+        var dd = parseInt(pdate[0]);
+        var mm = parseInt(pdate[1]);
+        var yy = parseInt(pdate[2]);
+        // Create list of days of a month [assume there is no leap year by default]
+        var ListofDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        if (mm == 1 || mm > 2) {
+            if (dd > ListofDays[mm - 1]) {
+                return false;
+            }
+        }
+        if (mm == 2) {
+            var lyear = false;
+            if ((!(yy % 4) && yy % 100) || !(yy % 400)) {
+                lyear = true;
+            }
+            if ((lyear == false) && (dd >= 29)) {
+                return false;
+            }
+            if ((lyear == true) && (dd > 29)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+function goToIndex() {
+    window.location = "/";
+};
+
+function InitSeletctonic(ids, select, unselectAll, keyDown) {
+    $(ids).each(function () {
+        $("#" + this + " tbody").selectonic({
+            multi: false,
+            mouseMode: "standard",
+            keyboard: true,            
+            autoScroll: '#' + this + ' tbody',
+            focusBlur: true,
+            selectBlur: true,
+            select: select,
+            unselectAll: unselectAll,
+            keyDown: keyDown
+        });
+    });
+};
+
+function Loader(state) {
+    $('.divLoader').each(function () {
+        if (state == 'show') { $(this).show(); } else if (state == 'hide') { $(this).hide(); }
+    })
+};
+
+var alertErrorShowing = false;
+
+function AlertServerError(msg) {
+
+    if (!alertErrorShowing) {
+        alertErrorShowing = true;
+
+        if (!msg) {
+            msg = 'Erro de acesso ao servidor!'
+        }
+
+        alertify.alert(msg, AlertServerErrorClosed);
+    }
+
+    Loader('hide');
+};
+
+function AlertServerErrorClosed() {
+    alertErrorShowing = false;
+}
+
+function SetDateTime0000(dateTime, seconds) {
+    if (dateTime) {
+        if (dateTime.length < 16) {
+            dateTime = dateTime + ' 00:00'
+            if (seconds == 1) {
+                dateTime = dateTime + ':00'
+            }
+        }
+    }
+
+    return dateTime;
+};
+
+
+function asyncLoop(iterations, func, callback) {
+    var index = 0;
+    var done = false;
+    var loop = {
+        next: function () {
+            if (done) {
+                return;
+            }
+
+            if (index < iterations) {
+                index++;
+                func(loop);
+
+            } else {
+                done = true;
+                callback();
+            }
+        },
+
+        iteration: function () {
+            return index - 1;
+        },
+
+        break: function () {
+            done = true;
+            callback();
+        }
+    };
+    loop.next();
+    return loop;
+};

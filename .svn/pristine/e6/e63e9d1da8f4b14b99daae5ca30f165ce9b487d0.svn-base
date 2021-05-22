@@ -1,0 +1,50 @@
+﻿var SVC_URL = "api/values/";
+
+rsAjaxService = {
+    POST: function (type, serviceURL, serviceFunction, requestData, onSuccess, onError, whenDone, credentials) {
+        this.SENDAJAXMS('POST', type, serviceURL, serviceFunction, requestData, onSuccess, onError, whenDone, credentials);
+    },
+    GET: function (type, serviceURL, serviceFunction, requestData, onSuccess, onError, whenDone, credentials) {
+        this.SENDAJAXMS('GET', type, serviceURL, serviceFunction, requestData, onSuccess, onError, whenDone, credentials);
+    },
+    SENDAJAXMS: function (method, type, serviceURL, serviceFunction, requestData, onSuccess, onError, whenDone, credentials) {
+        var withCredentials = false;
+
+        if (type) {
+            withCredentials = true;
+            if (!credentials) { credentials = ''; }
+        }
+
+        if (!onSuccess) {
+            onSuccess = function (data, ajaxOptions, response) {
+            };
+        }
+        if (!onError) {
+            onError = function (xhr, ajaxOptions, thrownError) {
+                console.log(xhr.responseText);
+            };
+        }
+        if (!whenDone) { whenDone = function () { }; }
+
+        $.ajax({
+            type: method,
+            url: serviceURL + serviceFunction,
+            data: requestData,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            xhrFields: {
+                withCredentials: withCredentials
+            },
+            beforeSend: function (xhr, opts) {
+                if (withCredentials) {
+                    xhr.setRequestHeader("Authorization", "Basic " + base64_encode(type) + credentials);
+                }
+            },
+            success: onSuccess,
+            error: onError
+        }).done(whenDone)
+    },
+    ToJSON: function (key, value) {
+        return '{"' + key + '":"' + value + '"}';
+    }
+}

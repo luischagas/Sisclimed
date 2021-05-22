@@ -1,0 +1,809 @@
+﻿Imports System.Net
+Imports System.Web.Http
+
+Namespace Controllers
+    Public Class ValuesController
+        Inherits ApiController
+
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListMedicos() As medicoResult
+            Dim retorno As New medicoResult
+
+            Try
+                retorno.value.LoadInfo()
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetMedico(data As medicoRequest) As medicoResult
+            Dim retorno As New medicoResult
+
+            Try
+                retorno.value.LoadInfo(data.medicoId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function SetMedico(data As medicoRequest) As medicoResult
+            Dim retorno As New medicoResult
+
+            Try
+                Dim nome As String = data.medico.nome
+                Dim email As String = data.medico.email
+                Dim senha As String = Encoding.UTF8.GetString(Convert.FromBase64String(data.medico.password))
+
+
+                Dim r As String = data.medico.SaveInfo()
+
+
+                retorno.message = r
+
+                If retorno.message = "OK" And data.medico.tipo = "ADD" Then
+                    EnviarEmail("Sisclimed - Informações de Cadastro", GetMessage_ActiveEmail(email, senha), email, True)
+                End If
+
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function DeleteMedico(data As medicoRequest) As medicoResult
+            Dim retorno As New medicoResult
+
+            Try
+
+                Dim r As String = data.medico.DeleteInfo(data.medicoId)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListAtendentes() As atendenteResult
+            Dim retorno As New atendenteResult
+
+            Try
+                retorno.value.LoadInfo()
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetAtendente(data As atendenteRequest) As atendenteResult
+            Dim retorno As New atendenteResult
+
+            Try
+                retorno.value.LoadInfo(data.atendenteId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function SetAtendente(data As atendenteRequest) As atendenteResult
+            Dim retorno As New atendenteResult
+
+            Try
+                Dim nome As String = data.atendente.nome
+                Dim email As String = data.atendente.email
+                Dim senha As String = Encoding.UTF8.GetString(Convert.FromBase64String(data.atendente.password))
+
+
+                Dim r As String = data.atendente.SaveInfo()
+
+
+                retorno.message = r
+
+                If retorno.message = "OK" And data.atendente.tipo = "ADD" Then
+                    EnviarEmail("Sisclimed - Informações de Cadastro", GetMessage_ActiveEmail(email, senha), email, True)
+                End If
+
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function DeleteAtendente(data As atendenteRequest) As atendenteResult
+            Dim retorno As New atendenteResult
+
+            Try
+
+                Dim r As String = data.atendente.DeleteInfo(data.atendenteId)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetCombo(data As comboListRequest) As comboListResult
+
+            Dim retorno As New comboListResult, l As comboValueList = Nothing
+
+            Try
+                Select Case data.tipo.ToUpper
+
+                    Case "CONVENIO"
+                        l = pacienteList.GetComboList("CONVENIO")
+
+                    Case "EXAME"
+                        l = pacienteList.GetComboList("EXAME")
+
+                    Case "MEDICO"
+                        l = medicoList.GetComboList("MEDICO", data.especialidade)
+
+                    Case "ESPECIALIDADE"
+                        l = medicoList.GetComboList("ESPECIALIDADE")
+
+                    Case "MEDICOAGENDA"
+                        l = medicoList.GetComboList("MEDICOAGENDA")
+
+                    Case "CONVENIOPACIENTE"
+                        l = medicoList.GetComboList("CONVENIOPACIENTE", 0, data.pacienteId)
+
+                    Case "PACIENTE"
+                        l = pacienteList.GetComboList("PACIENTE")
+
+                End Select
+            Catch ex As Exception
+            End Try
+
+            If Not l Is Nothing Then
+                retorno = New comboListResult(l)
+
+            End If
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetPacienteAgenda(data As pacienteAgendaRequest) As pacienteAgendaResult
+
+            Dim retorno As New pacienteAgendaResult, l As pacienteAgendaList = Nothing
+
+            Try
+
+                l = pacienteAgendaList.GetPacienteAgenda(data.termo)
+
+            Catch ex As Exception
+            End Try
+
+            If Not l Is Nothing Then
+                retorno = New pacienteAgendaResult(l)
+
+            End If
+
+            Return retorno
+        End Function
+
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListPacientes() As pacienteResult
+            Dim retorno As New pacienteResult
+
+            Try
+                retorno.value.LoadInfo()
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetPaciente(data As pacienteRequest) As pacienteResult
+            Dim retorno As New pacienteResult
+
+            Try
+                retorno.value.LoadInfo(data.pacienteId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function SetPaciente(data As pacienteRequest) As pacienteResult
+            Dim retorno As New pacienteResult
+
+            Try
+                Dim nome As String = data.paciente.nome
+                Dim email As String = data.paciente.email
+                Dim senha As String = Encoding.UTF8.GetString(Convert.FromBase64String(data.paciente.password))
+
+
+                Dim r As String = data.paciente.SaveInfo()
+
+
+                retorno.message = r
+
+                If retorno.message = "OK" And data.paciente.tipo = "ADD" Then
+                    EnviarEmail("Sisclimed - Informações de Cadastro", GetMessage_ActiveEmail(email, senha), email, True)
+                End If
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function DeletePaciente(data As pacienteRequest) As pacienteResult
+            Dim retorno As New pacienteResult
+
+            Try
+
+                Dim r As String = data.paciente.DeleteInfo(data.pacienteId)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListConvenios() As convenioResult
+            Dim retorno As New convenioResult
+
+            Try
+                retorno.value.LoadInfo()
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetConvenio(data As convenioRequest) As convenioResult
+            Dim retorno As New convenioResult
+
+            Try
+                retorno.value.LoadInfo(data.convenioId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function SetConvenio(data As convenioRequest) As convenioResult
+            Dim retorno As New convenioResult
+
+            Try
+
+                Dim r As String = data.convenio.SaveInfo()
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function DeleteConvenio(data As convenioRequest) As convenioResult
+            Dim retorno As New convenioResult
+
+            Try
+
+                Dim r As String = data.convenio.DeleteInfo(data.convenioId)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListExames() As exameResult
+            Dim retorno As New exameResult
+
+            Try
+                retorno.value.LoadInfo()
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetExame(data As exameRequest) As exameResult
+            Dim retorno As New exameResult
+
+            Try
+                retorno.value.LoadInfo(data.exameId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <Mvc.AllowAnonymous>
+        Public Function SetExame(data As exameRequest) As exameResult
+            Dim retorno As New exameResult
+
+            Try
+
+                Dim r As String = data.exame.SaveInfo()
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function DeleteExame(data As exameRequest) As exameResult
+            Dim retorno As New exameResult
+
+            Try
+
+                Dim r As String = data.exame.DeleteInfo(data.exameId)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListAgendamentos() As agendamentoResult
+            Dim retorno As New agendamentoResult
+
+            Try
+                Dim ActiveTokenStatus As New ActiveTokenStatus(MyBase.ControllerContext.RouteData.Values)
+
+                If ActiveTokenStatus.Loaded Then
+                    Dim Usuario As New Usuario(ActiveTokenStatus.Token)
+                    If Usuario.Loaded Then
+                        retorno.value.LoadInfo(0, Usuario.UsuarioId, Usuario.Tipo)
+
+                        If retorno.value.Loaded Then
+                            retorno.code = 1
+                        End If
+                    End If
+                End If
+                'retorno.value.LoadInfo()
+
+                'If retorno.value.Loaded Then
+                '    retorno.code = 1
+                'End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetAgendamento(data As agendamentoRequest) As agendamentoResult
+            Dim retorno As New agendamentoResult
+
+            Try
+                retorno.value.LoadInfo(data.agendamentoId, 0, 0)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function SetAgendamento(data As agendamentoRequest) As agendamentoResult
+            Dim retorno As New agendamentoResult
+
+            Try
+
+                Dim r As String = data.agendamento.SaveInfo()
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function DeleteAgendamento(data As agendamentoRequest) As agendamentoResult
+            Dim retorno As New agendamentoResult
+
+            Try
+
+                Dim r As String = data.agendamento.DeleteInfo(data.agendamentoId)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListatendimentos() As atendimentoResult
+            Dim retorno As New atendimentoResult
+
+            Try
+                Dim ActiveTokenStatus As New ActiveTokenStatus(MyBase.ControllerContext.RouteData.Values)
+
+                If ActiveTokenStatus.Loaded Then
+                    Dim Usuario As New Usuario(ActiveTokenStatus.Token)
+                    If Usuario.Loaded Then
+                        retorno.value.LoadInfo(0, Usuario.UsuarioId, Usuario.Tipo)
+
+                        If retorno.value.Loaded Then
+                            retorno.code = 1
+                        End If
+                    End If
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function Getatendimento(data As atendimentoRequest) As atendimentoResult
+            Dim retorno As New atendimentoResult
+
+            Try
+                retorno.value.LoadInfo(data.atendimentoId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function Setatendimento(data As atendimentoRequest) As atendimentoResult
+            Dim retorno As New atendimentoResult
+
+            Try
+
+                Dim r As String = data.atendimento.SaveInfo()
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function Deleteatendimento(data As atendimentoRequest) As atendimentoResult
+            Dim retorno As New atendimentoResult
+
+            Try
+
+                Dim r As String = data.atendimento.DeleteInfo(data.atendimentoId)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetListHistoricos() As historicoResult
+            Dim retorno As New historicoResult
+
+            Try
+                Dim ActiveTokenStatus As New ActiveTokenStatus(MyBase.ControllerContext.RouteData.Values)
+
+                If ActiveTokenStatus.Loaded Then
+                    Dim Usuario As New Usuario(ActiveTokenStatus.Token)
+                    If Usuario.Loaded Then
+                        retorno.value.LoadInfo(0, Usuario.UsuarioId, Usuario.Tipo)
+
+                        If retorno.value.Loaded Then
+                            retorno.code = 1
+                        End If
+                    End If
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetHistorico(data As historicoRequest) As historicoResult
+            Dim retorno As New historicoResult
+
+            Try
+                retorno.value.LoadInfo(data.historicoId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function SetHistorico(data As historicoRequest) As historicoResult
+            Dim retorno As New historicoResult
+
+            Try
+
+                Dim r As String = data.historico.SaveInfo()
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetListRelatorioAgenda(data As relatorioAgendamentoRequest) As relatorioAgendamentoResult
+            Dim retorno As New relatorioAgendamentoResult
+
+            Try
+                retorno.value.LoadInfo(data.relatorio.dataInicial, data.relatorio.dataFinal, data.relatorio.medicoId, data.relatorio.especialidadeId, data.relatorio.pacienteId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetListRelatorioAtendimento(data As relatorioAtendimentoRequest) As relatorioAtendimentoResult
+            Dim retorno As New relatorioAtendimentoResult
+
+            Try
+                retorno.value.LoadInfo(data.relatorio.dataInicial, data.relatorio.dataFinal, data.relatorio.medicoId, data.relatorio.pacienteId, data.relatorio.statusComparecimento, data.relatorio.statusPagamento)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <ActionAuthenticationAttribute()>
+        Public Function GetUsuario() As usuarioInfo
+            Dim retorno As New usuarioInfo
+
+            Try
+                Dim ActiveTokenStatus As New ActiveTokenStatus(MyBase.ControllerContext.RouteData.Values)
+
+                If ActiveTokenStatus.Loaded Then
+                    Dim u As New Usuario(ActiveTokenStatus.Token)
+
+                    If u Is Nothing OrElse Not u.Loaded Then Exit Try
+
+                    'u.Cooperativa = CooperativaList.GetCooperativa(u.Cooperativa.CooperativaID)
+
+                    retorno.SetUserData(u)
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function GetData(data As jornadaRequest) As jornadaResult
+            Dim retorno As New jornadaResult
+
+            Try
+                retorno.value.LoadInfo(data.medicoId)
+
+                If retorno.value.Loaded Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+        <HttpPost()>
+        <ActionAuthenticationAttribute()>
+        Public Function EditarSenha(data As RedefinirSenha) As editarResult
+            Dim retorno As New editarResult
+            Dim u As New Usuario()
+            Try
+
+                Dim r As String = u.TrocaSenha(data.code, data.password, data.Newpassword)
+
+
+                retorno.message = r
+
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+
+
+
+
+        End Function
+
+        <AllowAnonymous()>
+        Public Function CriarSessao() As criarSessaoResult
+            Dim retorno As New criarSessaoResult
+
+            Try
+                retorno.value = UserAccessControl.GetOrSetToken(Nothing)
+
+                If Not String.IsNullOrEmpty(retorno.value) AndAlso Not retorno.value = "3" Then
+                    retorno.code = 1
+                End If
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+
+        <AllowAnonymous()>
+        Public Function Login() As String
+            Dim retorno As String = ""
+            Try
+                If MyBase.ControllerContext.RouteData.Values.Keys.Contains(UserAccessControl.GetCookieSession()) Then
+                    retorno = Convert.ToBase64String(Encoding.UTF8.GetBytes("AuthLGN"))
+                Else
+                    retorno = Convert.ToBase64String(Encoding.UTF8.GetBytes("error"))
+                End If
+            Catch ex As Exception
+            End Try
+            Return retorno
+        End Function
+
+
+        <AllowAnonymous()>
+        Public Function Logout(data As LogoutRequest) As Integer
+            Dim retorno As Integer = -1
+
+            Try
+                retorno = UserAccessControl.LogoutSession(data.token)
+            Catch ex As Exception
+            End Try
+
+            Return retorno
+        End Function
+
+    End Class
+End Namespace
+
+

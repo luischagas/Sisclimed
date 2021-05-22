@@ -1,0 +1,348 @@
+﻿
+
+
+
+.divCadastro {
+    margin-top:20px;
+}
+
+.bgFFF {
+    background:#fff !important;
+}
+
+
+
+
+.container-fluid{
+    overflow:auto;
+}
+
+#divConvenio,#divMedico, #divAtendente, #divPaciente, #divExame, #divHistorico, #divAgendamentos, #divAtendimento {
+    width:100%;
+    float:left; 
+    min-height:500px; 
+    overflow:auto;
+        height:auto;
+
+}
+
+
+
+/*Tabela*/
+
+/*tabela*/
+.table thead tr th,
+.sticky-thead thead tr th {
+    border-bottom: 2px solid #163d6d;
+    text-align: left;
+    background: #3d4d5a;  /*#6799af;*/
+    border-bottom: none;
+    color: #fff;
+    font-weight: lighter;
+    font-family: 'Roboto', sans-serif;
+    font-size:1em;
+    padding-left:15px;
+}
+
+.table-striped > tbody > tr:nth-child(odd) {
+   background-color: #e9e6e6;
+}
+
+.table tbody tr td {
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    font-size:1em;
+    padding-left:15px;
+}
+
+.table-striped > tbody > tr:hover {
+    background-color: #546877;
+    color:#fff;
+}
+
+
+
+.j-selected {
+}
+
+.j-selectable {
+}
+
+/*.j-focused {
+    background-color: #163d6d !important;
+    color:#fff;
+}*/
+
+.j-disabled {
+}
+
+/*Botões*/
+
+.buttonInside {
+    cursor: pointer;
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    color: #fff;
+    background:#991426;
+}
+.buttonInside:hover {
+    background-color: #777c81;
+}
+
+.buttonFooter {
+    cursor: pointer;
+    padding: 10px 20px;
+    border: none;
+    color: #fff;
+    background:#991426;
+    margin-left:2px;
+}
+
+.buttonFooter:hover {
+    background-color: #777c81;
+}
+
+.buttonFooter:disabled{
+    background-color: #D7D7D7;
+}
+
+
+button.close {
+    color:#fff;
+    opacity:1;
+}
+
+.buttonPagamento {
+    cursor: pointer;
+    padding: 5px 10px;
+    border: none;
+    color: #fff;
+    background:#3d4d5a;
+    margin-top: 10px;
+    margin-left:2px;
+}
+
+.buttonPagamento:hover {
+    background-color: #777c81;
+}
+
+
+/*Modal*/
+
+.modal-header {
+    background:#3d4d5a;
+}
+
+.modal-header h4 {
+    font-family: 'Roboto', sans-serif;
+    font-size:1.25em;
+    color: #fff;
+    margin-left: 15px;
+}
+
+
+label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.938em;
+    font-weight: 500;
+    margin-bottom: 1px;
+    color: #163d6d;
+}
+
+.modal-footer {
+    /*background:#f1f1f1;*/
+    border:none;
+    padding:5px 30px 15px;
+}
+
+body, .navbar-fixed-top, .navbar-fixed-bottom { margin-right: 0 !important;
+                                                padding-right: 0 !important;}
+
+.input-search{
+    width:60%;
+        border:1px solid #ccc;
+        padding:8px 15px;
+        font-size:1em;
+        font-family: "Roboto", sans-serif;
+        margin:10px 0;
+        color:#163d6d;
+        background:url(images/searcher.png) 97% center no-repeat;
+
+ 
+        -webkit-border-radius:5px;
+           -moz-border-radius:5px;
+                border-radius:5px;
+    }
+
+.divLicencaDisp{
+        text-align:right;
+        margin-top: 9px;
+    }
+
+@media (max-width: 991px) {
+    .input-search {
+        width: 100%;
+
+    }
+}
+
+/*@media only screen and (min-width: 768px) {
+    .input-search {
+        width: 80%;
+    }
+}
+
+    @media only screen and (min-width: 1170px) {
+        .input-search {
+            width: 80%;
+        }
+    .divLicencaDisp{
+        text-align:center;
+    }
+}*/
+        .input-search::-webkit-input-placeholder{ }
+        .input-search:-moz-placeholder          {}
+        .input-search:-ms-input-placeholder     { }
+ 
+
+#divPesquisa {
+    text-align:right;
+
+ 
+}
+    
+
+#divTextoSaudacao{
+     font-family: 'Roboto', sans-serif;
+    font-size:2.25em;
+        text-align:center;
+
+}
+
+.divSaudacao {
+     margin-top:10px;
+   
+}
+
+.j-focused {
+    background-color: #163d6d !important;
+    color: #fff;
+}
+
+.alertify-button-ok,
+				.alertify-button-ok:hover,
+				.alertify-button-ok:focus,
+				.alertify-button-ok:active {
+					background-color: #991426 !important;
+					border: 1px solid #991426  !important;
+					border-color: #991426 #991426 #830b1b !important;
+				}
+
+
+.ui-widget-header {
+    background-color:#3d4d5a;
+    color: #000;
+}
+
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight {
+    border: #D7D7D7;
+    background:#D7D7D7;
+}
+
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, a.ui-button:active, .ui-button:active, .ui-button.ui-state-active:hover{
+    background-color:#3d4d5a;
+        border: #3d4d5a;
+        color:#fff;
+}
+
+.ui-icon,
+.ui-widget-content .ui-icon {
+	background-image: url("../Content/themes/base/images/ui-icons_ffffff_256x240.png");
+}
+.ui-widget-header .ui-icon {
+    background-image: url("../Content/themes/base/images/ui-icons_ffffff_256x240.png");
+}
+
+.ui-state-hover,
+.ui-widget-content .ui-state-hover,
+.ui-widget-header .ui-state-hover
+ {
+	border: 1px solid #cccccc;
+	background: #3d4d5a;
+	font-weight: normal;
+	color: #fff;
+}
+
+.img-icone{
+   
+    background-image: url("../Content/images/waste-binb.png") ;
+    background-size: 22px 22px;
+    width:22px;
+    height:22px;
+    margin-left: 14px;
+			
+}
+
+
+
+.j-focused div{
+    background-image: url("../Content/images/deleteHover.png") ;
+    background-size: 22px 22px;
+    width:22px;
+    height:22px;
+    margin-left: 14px;
+}
+
+.table-striped > tbody > tr:hover div{
+    background-image: url("../Content/images/deleteHover.png") ;
+    background-size: 22px 22px;
+    width:22px;
+    height:22px;
+    margin-left: 14px;
+}
+
+#divPesquisar{
+    padding-right: 0 !important;
+}
+
+.ui-autocomplete {
+z-index: 215000000 !important;
+}
+
+.divCartao {
+    float:right;
+}
+
+
+@media (min-width: 1170px) {
+
+.botaoMenu{
+    box-shadow:inset 0px 0px 3px #3d4d5a
+}
+}
+
+.botaoRelatorio {
+    text-align:right;
+}
+
+.input-sm {
+  font-size: 13px;
+  color: #3d4d5a !important;
+
+}
+
+
+.modalSenha {
+    max-width:300px;
+}
+
+.usuario a{
+    text-decoration:none;
+
+}
+
+.usuario a:hover{
+    text-decoration:none;
+
+}

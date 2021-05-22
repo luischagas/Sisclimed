@@ -1,0 +1,602 @@
+﻿var estado;
+
+var modalShowing = false;
+
+ko.extenders.ValidaCadastro = function (target) {
+    var result = ko.computed({
+        read: target,
+        write: function (newValue) {
+            var current = target()
+
+            if (newValue !== current) {
+                //msgLogin("");
+                target(newValue);
+                target.notifySubscribers(newValue);
+
+                if (medicoKO) {
+                    medicoKO.validCadastro(validarCampos());
+                }
+            }
+        }
+    }).extend({ notify: 'always' });;
+
+    result(target());
+
+    return result;
+};
+
+
+var medicoKO = new medicoData();
+
+$(function () {
+    MedicoStart();
+});
+
+
+function MedicoStart() {
+
+    var datako = $("[data-bind*='medicoKO']");
+
+    for (ct = 0; ct < datako.length; ct++) {
+        var datakoelement = datako[ct];
+        ko.applyBindings(medicoKO, datakoelement);
+    }
+
+    Loader('show');
+
+    GetListMedico();
+    GetCombo('ESPECIALIDADE', $('.slcEspecialidade'));
+
+
+    $('#btnCadastrarNovoMedico').on('click', function () {
+       
+        $('#modalNovoCadastroMedico').modal()
+        estado = true;
+        clearFields();
+        $('#btnSalvarNovoMedico span').text("Salvar");
+        $('h4').text('Novo Cadastro de Médico');
+    })
+
+    $('#modalNovoCadastroMedico').on('shown.bs.modal', function (e) {
+        modalShowing = true;
+        
+    });
+
+    $('#modalNovoCadastroMedico').on('hidden.bs.modal', function (e) {
+        modalShowing = false;
+        SetSelectonicFocus('#tblMedico', medicoKO.currentDisplayMedicoIdentity());
+    });
+
+    $('#btnLimparMedico').on('click', function () {
+
+        clearFields();
+
+    })
+
+
+    InitSeletctonic(['tblMedico'],
+       function (event, ui) { //Select Event
+           if (!modalShowing) {
+               setCurrentDisplayMedico($(ui.items).data("id"), $(ui.items).attr("id"));
+           }
+       },
+
+       function (event, ui) { // Unselect Event
+
+       },
+
+       function (event, ui) { //KeyDown Event
+
+           if (event.originalEvent.which == 13) {
+               showModalUPT(medicoKO.currentDisplayMedico());
+           }
+       });
+
+    $('#btnSalvarNovoMedico').on('click', function () {
+        estado ? AddUpdateMedico('ADD') : AddUpdateMedico('UPT', medicoKO.medicoId());
+    })
+
+    $('#modalNovoCadastroMedico').on('shown.bs.modal', function () {
+        $('#txtNome_Medico').focus();
+    })
+    
+    $('.j-selected').on('keydown', function () {
+        showModalUPT(medicoKO.currentDisplayMedico());
+    });
+
+
+
+    $("#txtDataNasc_Medico").mask("99/99/9999");
+
+    $("#txtCPF").mask("999.999.999-99");
+
+    $('#txtNumero_Medico').bind('keydown', soNums);
+
+    var dateToday = new Date();
+    $(".DataNasc").datepicker({
+        dateFormat: 'dd/mm/yy',
+        dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+        dayNamesMin: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
+        dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+        monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+        monthNamesShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+        nextText: 'Próximo',
+        prevText: 'Anterior',
+        currentText: 'Agora',
+        closeText: 'Fechar',
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '1945:' + (new Date).getFullYear(),
+        showButtonPanel: true,
+    });
+
+}
+
+var enterSearch = function (d, e) {
+    if (e.keyCode == 13 && validarCampos()) {
+        $('#btnSalvarNovoMedico').click();
+        $('#btnSalvarNovoMedico').removeAttr("disabled");
+    }
+    return true;
+};
+
+
+function validarCampos() {
+
+    return medicoKO.nome().length > 0 && medicoKO.dataNasc().length > 0 && $('#rua').length > 0 && $('#bairro').length > 0 && $('#uf').length > 0 && $('#cidade').length > 0 && medicoKO.cpf().length > 0 && medicoKO.email().length > 0 && medicoKO.crm().length > 0 && medicoKO.especialidade().length > 0
+};
+
+function medicoData() {
+    this.nome = ko.observable("").extend({ ValidaCadastro: null });
+    this.dataNasc = ko.observable("").extend({ ValidaCadastro: null });
+    this.endereco = ko.observable("").extend({ ValidaCadastro: null });
+    this.numero = ko.observable("");
+    this.complemento = ko.observable("");
+    this.bairro = ko.observable("").extend({ ValidaCadastro: null });
+    this.estado = ko.observable("").extend({ ValidaCadastro: null });
+    this.cidade = ko.observable("").extend({ ValidaCadastro: null });
+    this.cpf = ko.observable("").extend({ ValidaCadastro: null });
+    this.email = ko.observable("").extend({ ValidaCadastro: null });
+    this.crm = ko.observable("").extend({ ValidaCadastro: null });
+    this.especialidade = ko.observable("").extend({ ValidaCadastro: null });
+    this.cep = ko.observable("");
+    this.password = ko.observable("");
+    this.tipo = ko.observable("");
+    this.medicoId = ko.observable("");
+    this.seg = ko.observable(false);
+    this.ter = ko.observable(false);
+    this.qua = ko.observable(false);
+    this.qui = ko.observable(false);
+    this.sex = ko.observable(false);
+    this.turnoSeg = ko.observable("");
+    this.turnoTer = ko.observable("");
+    this.turnoQua = ko.observable("");
+    this.turnoQui = ko.observable("");
+    this.turnoSex = ko.observable("");
+    this.medicoList = ko.observableArray([]);
+    this.validCadastro = ko.observable(false);
+    this.currentDisplayMedico = ko.observable(null);
+    this.currentDisplayMedicoIdentity = ko.observable(null);
+  
+};
+
+
+function setCurrentDisplayMedico(id, name) {
+    for (ct = 0; ct < medicoKO.medicoList().length; ct++) {
+        var medico = medicoKO.medicoList()[ct];
+        if (medico.medicoId == id) {
+            medicoKO.currentDisplayMedico(medico);
+            medicoKO.currentDisplayMedicoIdentity(name)
+        }
+    }
+};
+
+function medico() {
+    this.nome = ""
+    this.dataNasc = ""
+    this.Endereco = ""
+    this.numero = ""
+    this.complemento = ""
+    this.bairro = ""
+    this.estado = ""
+    this.cidade = ""
+    this.cpf = ""
+    this.email = ""
+    this.crm = ""
+    this.especialidade = ""
+    this.cep = ""
+    this.medicoId = ""
+    this.tipo = ""
+    this.password = ""
+    this.seg = ""
+    this.ter = ""
+    this.qua = ""
+    this.qui = ""
+    this.sex = ""
+    this.turnoSeg = ""
+    this.turnoTer = ""
+    this.turnoQua = ""
+    this.turnoQui = ""
+    this.turnoSex = ""
+}
+
+function medicoRequest() {
+    this.medico = new medico();
+};
+
+function GetListMedico() {
+    if ($('#txtSearch').val() == '') {
+        if (!modalShowing) {
+            $.ajax({
+                type: 'GET',
+                url: '../api/values/GetListMedicos',
+                dataType: 'json',
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function (xhr, opts) {
+                    xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    AlertServerError();
+                    setTimeout(GetListMedico, 15000);
+                },
+                success: function (data, ajaxOptions, response) {
+
+                    if (data) {
+                        if (data.value) {
+                            if (data.value.length > 0) {
+                                medicoKO.medicoList(data.value);
+
+
+                                if (medicoKO.currentDisplayMedicoIdentity()) {
+                                    SetSelectonicFocus('#tblMedico', medicoKO.currentDisplayMedicoIdentity());
+                                }
+                            } else { medicoKO.medicoList(data.value); Loader('hide'); }
+                        } else { Loader('hide'); }
+                    }
+
+                    setTimeout(GetListMedico, 15000);
+
+                    $('progress').val(10000);
+
+                    var refreshIntervalId = setInterval(function () {
+                        if ($('progress').val() == 0) { clearInterval(refreshIntervalId); }
+                        $('progress').val(($('progress').val() - 50));
+                    }, 50);
+
+                    Loader('hide');
+                },
+
+
+            });
+
+        } else {
+            setTimeout(GetListMedico, 15000);
+        }
+    }
+}
+
+function SetSelectonicFocus(table, selected) {
+
+    var tbl = $(table + ' tbody');
+
+    if (selected) {
+        tbl.selectonic('select', $('#' + selected));
+        tbl.selectonic('focus', $('#' + selected));
+    }
+
+};
+
+function GetMedico(medicoId) {
+
+    var dataValue = new medicoRequest();
+
+    dataValue.medico.medicoId = medicoId;
+
+    $.ajax({
+        type: 'POST',
+        url: '../api/values/GetMedico',
+        data: JSON.stringify(dataValue.medico),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {            
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+
+            if (data) {
+                if (data.value) {
+                    if (data.value.length > 0) {
+                        medicoKO.nome(data.value[0].nome);
+                        medicoKO.dataNasc(moment(data.value[0].dataNasc).format('DD/MM/YYYY'));
+                        medicoKO.endereco(data.value[0].endereco);
+                        medicoKO.numero(data.value[0].numero);
+                        medicoKO.complemento(data.value[0].complemento);
+                        medicoKO.bairro(data.value[0].bairro);
+                        medicoKO.estado(data.value[0].estado);
+                        medicoKO.cidade(data.value[0].cidade);
+                        medicoKO.cpf(data.value[0].cpf);
+                        medicoKO.email(data.value[0].email);
+                        medicoKO.especialidade(data.value[0].especialidade);
+                        medicoKO.crm(data.value[0].crm);
+                        medicoKO.cep(data.value[0].cep);
+                        medicoKO.medicoId(data.value[0].medicoId);
+                    }
+                } else { Loader('hide'); }
+            }
+            Loader('hide');
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError();
+        }
+    });
+}
+
+
+function showModalUPT(medico, event) {
+
+    var run = true;
+
+    if (medico) {
+
+        if (event) {
+            if (event.keyCode) {
+                if (event.keyCode != 13) { run = false; }
+            }
+        }
+
+        if (run) {
+            clearFields();
+            GetMedico(medico.medicoId);
+            $('#btnSalvarNovoMedico span').text('Alterar');
+            $('h4').text('Alterar Cadastro do Médico');
+            $('#modalNovoCadastroMedico').modal();
+            estado = false;
+        }
+    }
+}
+
+function randomPassword(length) {
+    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var pass = "";
+    for (var x = 0; x < length; x++) {
+        var i = Math.floor(Math.random() * chars.length);
+        pass += chars.charAt(i);
+    }
+    return pass;
+}
+
+function AddUpdateMedico(acao, MedicoID,tipo) {
+
+   
+    var dataValue = new medicoRequest();
+
+    medicoKO.endereco($('#rua').val());
+    medicoKO.bairro($('#bairro').val());
+    medicoKO.estado($('#uf').val());
+    medicoKO.cidade($('#cidade').val());
+
+    var parts = medicoKO.dataNasc().split("/");
+    var dt = new Date(parseInt(parts[2], 10),
+                      parseInt(parts[1], 10) - 1,
+                      parseInt(parts[0], 10));
+
+    dataValue.medico.nome = medicoKO.nome();
+    dataValue.medico.dataNasc = dt;
+    dataValue.medico.endereco = medicoKO.endereco();
+    dataValue.medico.numero = medicoKO.numero();
+    dataValue.medico.complemento = medicoKO.complemento();
+    dataValue.medico.bairro = medicoKO.bairro();
+    dataValue.medico.estado = medicoKO.estado();
+    dataValue.medico.cidade = medicoKO.cidade();
+    dataValue.medico.cpf = medicoKO.cpf().replace(/[\(\)\.\s-]+/g, '');
+    dataValue.medico.email = medicoKO.email();
+    dataValue.medico.especialidade = medicoKO.especialidade();
+    dataValue.medico.crm = medicoKO.crm();
+    dataValue.medico.cep = medicoKO.cep().replace(/[\(\)\.\s-]+/g, '');
+    dataValue.medico.password = base64_encode(randomPassword(6));
+    dataValue.medico.tipo = acao;
+    dataValue.medico.medicoId = MedicoID;
+    if (medicoKO.seg()) {
+        dataValue.medico.turnoSeg = medicoKO.turnoSeg();
+    } else {
+        dataValue.medico.turnoSeg = "";
+}
+    if (medicoKO.ter()) {
+        dataValue.medico.turnoTer = medicoKO.turnoTer();
+    } else {
+        dataValue.medico.turnoTer = "";
+    }
+    if (medicoKO.qua()) {
+        dataValue.medico.turnoQua = medicoKO.turnoQua();
+    } else {
+        dataValue.medico.turnoQua = "";
+    }
+    if (medicoKO.qui()) {
+        dataValue.medico.turnoQui = medicoKO.turnoQui();
+    } else {
+        dataValue.medico.turnoQui = "";
+    }
+    if (medicoKO.sex()) {
+        dataValue.medico.turnoSex = medicoKO.turnoSex();
+    } else {
+        dataValue.medico.turnoSex = "";
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: '../api/values/SetMedico',
+        data: JSON.stringify(dataValue),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+            var msg = '';
+
+            if (data) {
+                if (data.value) {
+                    if (data.message == "OK") {
+                        $('#modalNovoCadastroMedico').modal('hide');
+
+                        if (acao == 'ADD') {
+                            if (medicoKO.email() != '') {
+                                msg = 'Médico adicionado com sucesso! <br /> Senha Provisória: <b>' + base64_decode(dataValue.medico.password) + '</b><br /> A mesma foi enviada para seu e-mail seguida das instruções necessárias.'
+                              
+                            } else {
+                                msg = 'Médico adicionado com sucesso!'
+                            }
+                        } else {
+                        msg = 'Médico Alterado com sucesso!';
+                        }
+                      
+                        modalShowing = false;
+                        GetListMedico();
+                    } else {
+                        msg = data.message;
+                    }
+                } else {  msg = 'Erro ao adicionar Médico!' }
+            } else { msg = 'Erro ao adicionar Médico!'; }
+
+            AlertServerError(msg);
+
+            Loader('hide');
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError('Erro ao adicionar Médico!');
+            Loader('hide');
+        }
+    });
+}
+
+function sendMail() {
+ 
+}
+
+function DeleteMedico(data) {
+   
+
+    var dataValue = new medicoRequest();
+
+    dataValue.medico.medicoId = data.medicoId;
+
+    alertify.confirm('Confirma a exclusão do médico selecionado?', function (e) {
+        if (e) {
+
+            $.ajax({
+                type: 'POST',
+                url: '../api/values/DeleteMedico',
+                data: JSON.stringify(dataValue.medico),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function (xhr, opts) {
+                    xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+                },
+                success: function (data, ajaxOptions, response) {
+                    var msg = '';
+
+                    if (data) {
+                        if (data.value) {
+                            if (data.message == "OK") {
+                                msg = 'Médico excluído com sucesso!'
+                                GetListMedico();
+                            } else { msg = data.message; }
+                        } else { Loader('hide'); }
+                    }
+
+                    AlertServerError(msg);
+
+                    Loader('hide');
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    AlertServerError();
+                }
+            });
+        }
+
+    });
+};
+
+function GetCombo(Tipo, nomeCombo) {
+
+    var dataValue = new medicoRequest();
+
+    dataValue.medico.tipo = Tipo;
+
+    $.ajax({
+        type: 'POST',
+        url: '../api/values/GetCombo',
+        data: JSON.stringify(dataValue.medico),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+
+            if (data) {
+                if (data.value) {
+                    if (data.value.length > 0) {
+                        opt = '';
+
+                        opt += '<option value="-1">Selecione</option>';
+
+                        $(data.value).each(function (index) {
+                            opt += '<option value="' + this.value + '"> ' + this.text + ' </option>';
+                        });
+
+                        nomeCombo.each(function () {
+                            $(this).empty().append(opt);
+                        })
+
+                    }
+                } else { Loader('hide'); }
+            }
+            Loader('hide');
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError();
+        }
+    });
+}
+
+function clearFields() {
+
+    medicoKO.nome("")
+    medicoKO.dataNasc("")
+    medicoKO.endereco("")
+    medicoKO.numero("")
+    medicoKO.complemento("")
+    medicoKO.bairro("")
+    medicoKO.estado("")
+    medicoKO.cidade("")
+    medicoKO.cpf("")
+    medicoKO.email("")
+    medicoKO.especialidade("")
+    medicoKO.crm("")
+    medicoKO.cep("")
+    $('#txtCPF').prop('placeholder', '');
+    $('#txtEmail').prop('placeholder', '');
+    $('#lblCPF').css('color', '')
+    $('#lblEmail').css('color', '')
+    $('#cep').prop('placeholder', '');
+    $('#formMedico').trigger('reset');
+
+}

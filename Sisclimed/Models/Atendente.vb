@@ -1,0 +1,227 @@
+﻿Imports System.Runtime.Serialization
+
+<DataContract()>
+Public Class atendente
+
+    <DataMember()>
+    Public Property nome As String
+
+    <DataMember()>
+    Public Property dataNasc As Date
+
+    <DataMember()>
+    Public Property endereco As String
+
+    <DataMember()>
+    Public Property numero As String
+
+    <DataMember()>
+    Public Property complemento As String
+
+    <DataMember()>
+    Public Property bairro As String
+
+    <DataMember()>
+    Public Property estado As String
+
+    <DataMember()>
+    Public Property cidade As String
+
+    <DataMember()>
+    Public Property cpf As String
+
+    <DataMember()>
+    Public Property email As String
+
+    <DataMember()>
+    Public Property telefone As String
+
+    <DataMember()>
+    Public Property celular As String
+
+    <DataMember()>
+    Public Property cep As String
+
+    <DataMember()>
+    Public Property password As String
+
+
+    <DataMember()>
+    Public Property tipo As String
+
+
+    <DataMember()>
+    Public Property atendenteId As Integer
+
+    Public status As Boolean = False
+
+    Public Sub New()
+
+    End Sub
+
+    Public Sub New(nome As String, dataNasc As Date, endereco As String, numero As String, complemento As String, bairro As String, estado As String, cidade As String, cpf As String, email As String, telefone As String, celular As String, cep As String, password As String, tipo As String)
+        Me.nome = nome
+        Me.dataNasc = dataNasc
+        Me.endereco = endereco
+        Me.numero = numero
+        Me.complemento = complemento
+        Me.bairro = bairro
+        Me.estado = estado
+        Me.cidade = cidade
+        Me.cpf = cpf
+        Me.email = email
+        Me.telefone = telefone
+        Me.celular = celular
+        Me.cep = cep
+        Me.password = password
+        Me.tipo = tipo
+    End Sub
+
+    Public Sub New(nome As String, dataNasc As Date, endereco As String, numero As String, complemento As String, bairro As String, estado As String, cidade As String, cpf As String, email As String, telefone As String, celular As String, cep As String, password As String, tipo As String, atendenteId As Integer)
+        Me.nome = nome
+        Me.dataNasc = dataNasc
+        Me.endereco = endereco
+        Me.numero = numero
+        Me.complemento = complemento
+        Me.bairro = bairro
+        Me.estado = estado
+        Me.cidade = cidade
+        Me.cpf = cpf
+        Me.email = email
+        Me.telefone = telefone
+        Me.celular = celular
+        Me.cep = cep
+        Me.password = password
+        Me.tipo = tipo
+        Me.atendenteId = atendenteId
+    End Sub
+
+    Public Function SaveInfo() As String
+        Dim retorno As String = ""
+
+        If String.IsNullOrEmpty(Me.nome) OrElse String.IsNullOrEmpty(Me.dataNasc) OrElse String.IsNullOrEmpty(Me.endereco) OrElse String.IsNullOrEmpty(Me.bairro) OrElse String.IsNullOrEmpty(Me.cpf) OrElse String.IsNullOrEmpty(Me.email) Then Return retorno
+
+        Dim DataAccess As New DataAccess, Vals As New List(Of Object), Parameters As New List(Of IDbDataParameter)
+        Try
+            DataAccess.setConection(SisclimedConnectionString, ApplicationName)
+
+            Parameters.Add(DataAccess.CreateInParam("@Nome", SqlDbType.VarChar, Me.nome))
+            Parameters.Add(DataAccess.CreateInParam("@DataNasc", SqlDbType.Date, Me.dataNasc))
+            Parameters.Add(DataAccess.CreateInParam("@Endereco", SqlDbType.VarChar, Me.endereco))
+            Parameters.Add(DataAccess.CreateInParam("@Numero", SqlDbType.VarChar, Me.numero))
+            Parameters.Add(DataAccess.CreateInParam("@Complemento", SqlDbType.VarChar, Me.complemento))
+            Parameters.Add(DataAccess.CreateInParam("@Bairro", SqlDbType.VarChar, Me.bairro))
+            Parameters.Add(DataAccess.CreateInParam("@Estado", SqlDbType.VarChar, Me.estado))
+            Parameters.Add(DataAccess.CreateInParam("@Cidade", SqlDbType.VarChar, Me.cidade))
+            Parameters.Add(DataAccess.CreateInParam("@Cpf", SqlDbType.VarChar, Me.cpf))
+            Parameters.Add(DataAccess.CreateInParam("@Email", SqlDbType.VarChar, Me.email))
+            Parameters.Add(DataAccess.CreateInParam("@Telefone", SqlDbType.VarChar, Me.telefone))
+            Parameters.Add(DataAccess.CreateInParam("@Celular", SqlDbType.VarChar, Me.celular))
+            Parameters.Add(DataAccess.CreateInParam("@Cep", SqlDbType.VarChar, Me.cep))
+            Parameters.Add(DataAccess.CreateInParam("@Password", SqlDbType.VarChar, Me.password))
+            Parameters.Add(DataAccess.CreateInParam("@Atendente_Id", SqlDbType.Int, Me.atendenteId))
+
+            Dim parRetorno As IDbDataParameter = DataAccess.CreateOutPutParam("@Resp", SqlDbType.VarChar, 4000)
+
+            Parameters.Add(parRetorno)
+
+            If DataAccess.execReaderProcedure("usp_Sisclimed_Setatendente", Parameters, Vals) AndAlso Not Vals Is Nothing Then
+                If Not parRetorno Is Nothing And Not parRetorno.Value Is Nothing Then
+                    retorno = parRetorno.Value
+                    If retorno.ToUpper = "OK" Then status = True
+                End If
+            End If
+        Catch ex As Exception
+        Finally
+            If Not DataAccess Is Nothing Then DataAccess.Dispose() : DataAccess = Nothing
+            Vals = Nothing
+        End Try
+
+        Return retorno
+    End Function
+
+
+    Public Function DeleteInfo(AtendenteID As Integer) As String
+        Dim retorno As String = ""
+
+        If String.IsNullOrEmpty(Me.atendenteId) Then Return retorno
+
+        Dim DataAccess As New DataAccess, Vals As New List(Of Object), Parameters As New List(Of IDbDataParameter)
+        Try
+            DataAccess.setConection(SisclimedConnectionString, ApplicationName)
+
+            Parameters.Add(DataAccess.CreateInParam("@Atendente_Id", SqlDbType.Int, AtendenteID))
+
+
+            Dim parRetorno As IDbDataParameter = DataAccess.CreateOutPutParam("@Resp", SqlDbType.VarChar, 4000)
+
+            Parameters.Add(parRetorno)
+
+            If DataAccess.execReaderProcedure("usp_Sisclimed_DeleteAtendente", Parameters, Vals) AndAlso Not Vals Is Nothing Then
+                If Not parRetorno Is Nothing And Not parRetorno.Value Is Nothing Then
+                    retorno = parRetorno.Value
+                    If retorno.ToUpper = "OK" Then status = True
+                End If
+            End If
+        Catch ex As Exception
+        Finally
+            If Not DataAccess Is Nothing Then DataAccess.Dispose() : DataAccess = Nothing
+            Vals = Nothing
+        End Try
+
+        Return retorno
+    End Function
+End Class
+
+
+Public Class atendenteList
+    Inherits List(Of atendente)
+
+    Private _Loaded As Boolean
+    Public ReadOnly Property Loaded As Boolean
+        Get
+            Return _Loaded
+        End Get
+    End Property
+
+    Sub New()
+    End Sub
+
+    Public Sub New(Load As Boolean, Optional atendenteID As Integer = 0)
+        If Load Then LoadInfo(atendenteID)
+    End Sub
+
+    Public Sub New(Protocolo As String)
+        Try
+            Dim protocoloSplit As String() = Protocolo.Split("#")
+
+            For Each ps In protocoloSplit
+                Dim info As String() = ps.Split("|")
+                If info.Count = 3 Then
+                    Me.Add(New atendente(info(0), info(1), info(2), info(3), info(4), info(5), info(6), info(7), info(8), info(9), info(10), info(11), info(12), info(13), info(14)))
+                End If
+            Next
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Public Sub LoadInfo(Optional atendenteID As Integer = 0)
+        Dim DataAccess As New DataAccess, Vals As New List(Of Object), parametros As New List(Of IDbDataParameter)
+
+        Try
+            DataAccess.setConection(SisclimedConnectionString, ApplicationName)
+
+            parametros.Add(DataAccess.CreateInParam("@atendente_Id", SqlDbType.Int, atendenteID))
+
+            If DataAccess.execReaderProcedure("usp_Sisclimed_Getatendente", parametros, Vals) AndAlso Not Vals Is Nothing Then
+                Me.Clear()
+                For Each v In Vals
+                    Me.Add(New atendente With {.atendenteId = v(0), .nome = v(1), .dataNasc = v(2), .endereco = v(3), .numero = v(4), .complemento = v(5), .bairro = v(6), .estado = v(7), .cidade = v(8), .cpf = v(9), .email = v(10), .telefone = v(11), .celular = v(12), .cep = v(13)})
+                Next
+                Me._Loaded = True
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+
+End Class

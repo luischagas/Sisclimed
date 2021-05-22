@@ -1,0 +1,69 @@
+﻿Public Module Modulo
+
+    Public SisclimedConnectionString As String, ApplicationName As String = "Sisclimed"
+
+    Sub New()
+        Try
+            If DEBUG_MODE() Then
+                SisclimedConnectionString = ConfigurationManager.AppSettings("SisclimedConnectionString_Debug")
+            Else
+                SisclimedConnectionString = ConfigurationManager.AppSettings("SisclimedConnectionString")
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+
+    Public Function DEBUG_MODE() As Boolean
+        Dim retorno As Boolean = False
+        Try
+            Dim debugMode As String = ConfigurationManager.AppSettings("DEBUG_MODE")
+            retorno = (Not debugMode Is Nothing AndAlso debugMode.ToUpper = "TRUE")
+        Catch ex As Exception
+        End Try
+        Return retorno
+    End Function
+
+    Public Function Get_ComboList(Tipo As String, Optional Especialidade As Integer = 0, Optional Paciente As Integer = 0) As comboValueList
+        Dim DataAccess As New DataAccess, Vals As New List(Of Object), parametros As New List(Of IDbDataParameter), retorno As New comboValueList
+
+        Try
+            DataAccess.setConection(SisclimedConnectionString, ApplicationName)
+
+            parametros.Add(DataAccess.CreateInParam("@Tipo", SqlDbType.VarChar, Tipo))
+            parametros.Add(DataAccess.CreateInParam("@Especialidade", SqlDbType.Int, Especialidade))
+            parametros.Add(DataAccess.CreateInParam("@PacienteId", SqlDbType.Int, Paciente))
+
+            If DataAccess.execReaderProcedure("usp_Sisclimed_GetComboList", parametros, Vals) AndAlso Not Vals Is Nothing Then
+                For Each v In Vals
+                    retorno.Add(New comboValue With {.text = v(0), .value = v(1)})
+                Next
+            End If
+
+        Catch ex As Exception
+        End Try
+
+        Return retorno
+    End Function
+
+    Public Function Get_PacienteAgenda(Nome As String) As pacienteAgendaList
+        Dim DataAccess As New DataAccess, Vals As New List(Of Object), parametros As New List(Of IDbDataParameter), retorno As New pacienteAgendaList
+
+        Try
+            DataAccess.setConection(SisclimedConnectionString, ApplicationName)
+
+            parametros.Add(DataAccess.CreateInParam("@Nome", SqlDbType.VarChar, Nome))
+
+            If DataAccess.execReaderProcedure("usp_Sisclimed_GetPacienteAgenda", parametros, Vals) AndAlso Not Vals Is Nothing Then
+                For Each v In Vals
+                    retorno.Add(New pacienteAgenda With {.id = v(0), .nome = v(1), .dataNasc = v(2), .endereco = v(3), .numero = v(4), .complemento = v(5), .bairro = v(6), .estado = v(7), .cidade = v(8)})
+                Next
+            End If
+
+        Catch ex As Exception
+        End Try
+
+        Return retorno
+    End Function
+
+
+End Module

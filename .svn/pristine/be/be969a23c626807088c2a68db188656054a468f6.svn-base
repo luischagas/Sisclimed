@@ -1,0 +1,639 @@
+﻿var estado;
+
+var teste;
+
+var modalShowing = false;
+
+ko.extenders.ValidaCadastro = function (target) {
+    var result = ko.computed({
+        read: target,
+        write: function (newValue) {
+            var current = target()
+
+            if (newValue !== current) {
+                //msgLogin("");
+                target(newValue);
+                target.notifySubscribers(newValue);
+
+                if (agendamentoKO) {
+                    agendamentoKO.validCadastro(validarCampos());
+                }
+            }
+        }
+    }).extend({ notify: 'always' });;
+
+    result(target());
+
+    return result;
+};
+ 
+
+var agendamentoKO = new agendamentoData();
+
+$(function () {
+    AgendamentoStart();
+});
+
+
+function AgendamentoStart() {
+
+    var datako = $("[data-bind*='agendamentoKO']");
+
+    for (ct = 0; ct < datako.length; ct++) {
+        var datakoelement = datako[ct];
+        ko.applyBindings(agendamentoKO, datakoelement);
+    }
+
+    Loader('show');
+
+    GetListAgendamentos();
+
+    GetUsuarioAtend();
+
+    $('#btnCadastrarNovoAgendamento').on('click', function () {
+
+        $('#modalNovoCadastroAgendamento').modal()
+        estado = true;
+        clearFields();
+        $('#btnSalvarNovoAgendamento span').text("Salvar");
+        $('h4').text('Novo Cadastro de Agendamento');
+    })
+
+    $('#modalNovoCadastroAgendamento').on('shown.bs.modal', function (e) {
+        modalShowing = true;
+    });
+
+    $('#modalNovoCadastroAgendamento').on('hidden.bs.modal', function (e) {
+        modalShowing = false;
+        SetSelectonicFocus('#tblAgendamento', agendamentoKO.currentDisplayAgendamentoIdentity());
+    });
+
+    $('#btnLimparAgendamento').on('click', function () {
+
+        clearFields();
+
+    })
+
+    GetCombo('ESPECIALIDADE', $('.slcEspecialidade'));
+    GetCombo('MEDICOAGENDA', $('.slcMedico'));
+
+    $("#txtEspecialidadeAgendamento").change(function () {
+        GetCombo('MEDICO', $('.slcMedico'), this.value);
+    });
+
+    $("#txtMedicoAgendamento").change(function () {
+        GetData($('#txtDataAgendamento'), this.value);
+    });
+
+    InitSeletctonic(['tblAgendamento'],
+       function (event, ui) { //Select Event
+           if (!modalShowing) {
+               setcurrentDisplayAgendamento($(ui.items).data("id"), $(ui.items).attr("id"));
+           }
+       },
+
+       function (event, ui) { // Unselect Event
+
+       },
+
+       function (event, ui) { //KeyDown Event
+
+           if (event.originalEvent.which == 13) {
+               showModalUPT(agendamentoKO.currentDisplayAgendamento());
+           }
+       });
+
+    $('#btnSalvarNovoAgendamento').on('click', function () {
+        estado ? AddUpdateAgendamento('ADD') : AddUpdateAgendamento('UPT', agendamentoKO.agendamentoId());
+    })
+
+    $('#modalNovoCadastroAgendamento').on('shown.bs.modal', function () {
+        $('#txtNomeAgendamento').focus();
+    })
+
+    $('.j-selected').on('keydown', function () {
+        showModalUPT(agendamentoKO.currentDisplayAgendamento());
+    });
+
+
+    $("#txtNomeAgendamento").autocomplete({
+
+        source: function (request, response) {
+
+            var dataValue = new agendamentoRequest();
+
+            dataValue.agendamento.termo = request.term;
+
+            $.ajax({
+                type: 'POST',
+                url: '../api/values/GetPacienteAgenda',
+                data: JSON.stringify(dataValue.agendamento),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function (xhr, opts) {
+                    xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+                },
+                success: function (data) {
+                    response(data.value);
+                }
+            });
+        },
+        focus: function (event, ui) {
+            $("#txtNomeAgendamento").val(ui.item.nome);
+            return false;
+        },
+        select: function (event, ui) {
+            agendamentoKO.nomePaciente(ui.item.nome);
+            agendamentoKO.dataNasc(moment(ui.item.dataNasc).format('DD/MM/YYYY'));
+            agendamentoKO.endereco(ui.item.endereco)
+            agendamentoKO.numero(ui.item.numero)
+            agendamentoKO.complemento(ui.item.complemento)
+            agendamentoKO.bairro(ui.item.bairro)
+            agendamentoKO.estado(ui.item.estado)
+            agendamentoKO.cidade(ui.item.cidade)
+            agendamentoKO.pacienteId(ui.item.id)
+            return false;
+        }
+    })
+            .data("ui-autocomplete")._renderItem = function (ul, item) {
+                return $("<li>")
+                    .data("ui-autocomplete-item", item)
+                    .append("<a>" + item.nome + "</a>")
+                    .appendTo(ul);
+
+               
+            };
+    
+}
+
+
+var enterSearch = function (d, e) {
+    if (e.keyCode == 13 && validarCampos()) {
+        $('#btnSalvarNovoAgendamento').click();
+        $('#btnSalvarNovoAgendamento').removeAttr("disabled");
+    }
+    return true;
+};
+
+
+function validarCampos() {
+
+    return agendamentoKO.data().length > 0 && agendamentoKO.hora().length > 0 && agendamentoKO.nomePaciente().length > 0 && agendamentoKO.especialidade().length > 0 && agendamentoKO.medicoId() != -1
+};
+
+function agendamentoData() {
+    this.data = ko.observableArray([]).extend({ ValidaCadastro: null });
+    this.hora = ko.observableArray([]);
+    this.pacienteId = ko.observable("");
+    this.nomePaciente = ko.observable("").extend({ ValidaCadastro: null });
+    this.especialidade = ko.observable("").extend({ ValidaCadastro: null });
+    this.obs = ko.observable("");
+    this.dataNasc = ko.observable("");
+    this.endereco = ko.observable("");
+    this.numero = ko.observable("");
+    this.complemento = ko.observable("");
+    this.bairro = ko.observable("");
+    this.estado = ko.observable("");
+    this.cidade = ko.observable("");
+    this.termo = ko.observable("");
+    this.tipo = ko.observable("");
+    this.tipoUsuario = ko.observable("");
+    this.medicoId = ko.observable("").extend({ ValidaCadastro: null });
+    this.agendamentoId = ko.observable("");
+    this.agendamentoList = ko.observableArray([]);
+    this.validCadastro = ko.observable(false);
+    this.currentDisplayAgendamento = ko.observable(null);
+    this.currentDisplayAgendamentoIdentity = ko.observable(null);
+
+};
+
+
+function setcurrentDisplayAgendamento(id, name) {
+    for (ct = 0; ct < agendamentoKO.agendamentoList().length; ct++) {
+        var agendamento = agendamentoKO.agendamentoList()[ct];
+        if (agendamento.agendamentoId == id) {
+            agendamentoKO.currentDisplayAgendamento(agendamento);
+            agendamentoKO.currentDisplayAgendamentoIdentity(name)
+        }
+    }
+};
+
+function agendamento() {
+    this.data = ""
+    this.hora = ""
+    this.pacienteId = ""
+    this.nomePaciente = ""
+    this.medicoId = ""
+    this.especialidade = ""
+    this.obs = ""
+    this.termo = ""
+    this.tipo = ""
+    this.agendamentoId = ""
+}
+
+function agendamentoRequest() {
+    this.agendamento = new agendamento();
+};
+
+function GetListAgendamentos() {
+    if ($('#txtSearch').val() == '') {
+        if (!modalShowing) {
+            $.ajax({
+                type: 'GET',
+                url: '../api/values/GetListAgendamentos',
+                dataType: 'json',
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function (xhr, opts) {
+                    xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    AlertServerError();
+                    setTimeout(GetListAgendamentos, 15000);
+                },
+                success: function (data, ajaxOptions, response) {
+
+                    if (data) {
+                        if (data.value) {
+                            if (data.value.length > 0) {
+                                agendamentoKO.agendamentoList(data.value);
+
+                                if (agendamentoKO.currentDisplayAgendamentoIdentity()) {
+                                    SetSelectonicFocus('#tblAgendamento', agendamentoKO.currentDisplayAgendamentoIdentity());
+                                }
+                            } else { agendamentoKO.agendamentoList(data.value); Loader('hide'); }
+                        } else { Loader('hide'); }
+                    }
+
+                    setTimeout(GetListAgendamentos, 15000);
+
+                    $('progress').val(10000);
+
+                    var refreshIntervalId = setInterval(function () {
+                        if ($('progress').val() == 0) { clearInterval(refreshIntervalId); }
+                        $('progress').val(($('progress').val() - 50));
+                    }, 50);
+
+                    Loader('hide');
+                },
+
+
+            });
+
+        } else {
+            setTimeout(GetListAgendamentos, 15000);
+        }
+    }
+}
+
+function SetSelectonicFocus(table, selected) {
+
+    var tbl = $(table + ' tbody');
+
+    if (selected) {
+        tbl.selectonic('select', $('#' + selected));
+        tbl.selectonic('focus', $('#' + selected));
+    }
+
+};
+
+function GetUsuarioAtend() {
+
+
+    $.ajax({
+        type: 'GET',
+        url: '../api/values/GetUsuario',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+
+            if (data) {
+
+                if (data) {
+                    agendamentoKO.tipoUsuario(data.Tipo);
+                }
+
+            }
+            Loader('hide');
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError();
+        }
+    });
+}
+
+function GetAgendamento(agendamentoId) {
+
+    var dataValue = new agendamentoRequest();
+
+    dataValue.agendamento.agendamentoId = agendamentoId;
+
+    $.ajax({
+        type: 'POST',
+        url: '../api/values/GetAgendamento',
+        data: JSON.stringify(dataValue.agendamento),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+
+            if (data) {
+                if (data.value) {
+                    if (data.value.length > 0) {
+                        agendamentoKO.data(moment(data.value[0].data).format('DD/MM/YYYY'));
+                        agendamentoKO.hora(data.value[0].hora);
+                        agendamentoKO.pacienteId(data.value[0].pacienteId);
+                        agendamentoKO.nomePaciente(data.value[0].nomePaciente);
+                        agendamentoKO.medicoId(data.value[0].medicoId);
+                        agendamentoKO.especialidade(data.value[0].especialidade);
+                        agendamentoKO.obs(data.value[0].obs);
+                        agendamentoKO.dataNasc(moment(data.value[0].dataNasc).format('DD/MM/YYYY'));
+                        agendamentoKO.endereco(data.value[0].endereco);
+                        agendamentoKO.numero(data.value[0].numero);
+                        agendamentoKO.complemento(data.value[0].complemento);
+                        agendamentoKO.bairro(data.value[0].bairro);
+                        agendamentoKO.estado(data.value[0].estado);
+                        agendamentoKO.cidade(data.value[0].cidade);
+                        agendamentoKO.agendamentoId(data.value[0].agendamentoId);
+                    }
+                } else { Loader('hide'); }
+            }
+            Loader('hide');
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError();
+        }
+    });
+}
+
+
+function showModalUPT(agendamento, event) {
+
+    var run = true;
+
+    if (agendamento) {
+
+        if (event) {
+            if (event.keyCode) {
+                if (event.keyCode != 13) { run = false; }
+            }
+        }
+
+        if (run) {
+            clearFields();
+            GetAgendamento(agendamento.agendamentoId);
+
+            $('#btnSalvarNovoAgendamento span').text('Alterar');
+            $('h4').text('Alterar Cadastro do Agendamento');
+            $('#modalNovoCadastroAgendamento').modal();
+            estado = false;
+        }
+    }
+}
+
+
+
+function AddUpdateAgendamento(acao, agendamentoId) {
+
+
+    var dataValue = new agendamentoRequest();
+
+    var parts = agendamentoKO.data().split("/");
+    var dt = new Date(parseInt(parts[2], 10),
+                      parseInt(parts[1], 10) - 1,
+                      parseInt(parts[0], 10));
+
+    dataValue.agendamento.data = dt;
+    dataValue.agendamento.hora = agendamentoKO.hora();
+    dataValue.agendamento.pacienteId = agendamentoKO.pacienteId();
+    dataValue.agendamento.medicoId = agendamentoKO.medicoId();
+    dataValue.agendamento.especialidade = agendamentoKO.especialidade();
+    dataValue.agendamento.obs = agendamentoKO.obs();
+    dataValue.agendamento.agendamentoId = agendamentoId;
+
+    $.ajax({
+        type: 'POST',
+        url: '../api/values/SetAgendamento',
+        data: JSON.stringify(dataValue),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+            var msg = '';
+
+            if (data) {
+                if (data.value) {
+                    if (data.message == "OK") {
+                        $('#modalNovoCadastroAgendamento').modal('hide');
+                        acao == 'ADD' ? msg = 'Agendamento adicionado com sucesso!' : msg = 'Agendamento Alterado com sucesso!';
+                        modalShowing = false;
+                        GetListAgendamentos();
+                    } else {
+                        msg = data.message;
+                    }
+                } else { msg = 'Erro ao adicionar Exame!' }
+            } else { msg = 'Erro ao adicionar Exame!'; }
+
+            AlertServerError(msg);
+
+            Loader('hide');
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError('Erro ao adicionar Exame!');
+            Loader('hide');
+        }
+    });
+}
+
+function DeleteAgendamento(data) {
+
+    if (agendamentoKO.tipoUsuario() == 2 || agendamentoKO.tipoUsuario() == 4) {
+        AlertServerError('Usuário não autorizado!');
+    } else { 
+        var dataValue = new agendamentoRequest();
+
+        dataValue.agendamento.agendamentoId = data.agendamentoId;
+
+        alertify.confirm('Confirma a exclusão do Agendamento selecionado?', function (e) {
+            if (e) {
+
+                $.ajax({
+                    type: 'POST',
+                    url: '../api/values/DeleteAgendamento',
+                    data: JSON.stringify(dataValue.agendamento),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    beforeSend: function (xhr, opts) {
+                        xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+                    },
+                    success: function (data, ajaxOptions, response) {
+                        var msg = '';
+
+                        if (data) {
+                            if (data.value) {
+                                if (data.message == "OK") {
+                                    msg = 'Agendamento excluído com sucesso!'
+                                    GetListAgendamentos();
+                                } else { msg = data.message; }
+                            } else { Loader('hide'); }
+                        }
+
+                        AlertServerError(msg);
+
+                        Loader('hide');
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        AlertServerError();
+                    }
+                });
+            }
+
+        });
+    }
+    
+
+
+};
+
+function GetCombo(Tipo, nomeCombo, especialidade) {
+
+    var dataValue = new agendamentoRequest();
+
+    dataValue.agendamento.tipo = Tipo;
+
+    dataValue.agendamento.especialidade = especialidade;
+
+
+    $.ajax({
+        type: 'POST',
+        url: '../api/values/GetCombo',
+        data: JSON.stringify(dataValue.agendamento),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {
+
+            if (data) {
+                if (data.value) {
+                    if (data.value.length > 0) {
+                        opt = '';
+
+                        opt += '<option value="-1">Selecione</option>';
+
+                        $(data.value).each(function (index) {
+                            opt += '<option value="' + this.value + '"> ' + this.text + ' </option>';
+                        });
+
+                        nomeCombo.each(function () {
+                            $(this).empty().append(opt);
+                        })
+
+                    } else {
+                        opt = '';
+
+                        opt += '<option value="-1">Selecione</option>';
+
+                        nomeCombo.each(function () {
+                            $(this).empty().append(opt);
+                        })
+                    }
+                } else {
+                   Loader('hide');
+                }
+            }
+            Loader('hide');
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError();
+        }
+    });
+}
+
+function GetData(nomeCombo, medicoId) {
+
+    var dataValue = new agendamentoRequest();
+
+    dataValue.agendamento.medicoId = medicoId;
+
+
+    $.ajax({
+        type: 'POST',
+        url: '../api/values/GetData',
+        data: JSON.stringify(dataValue.agendamento),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        xhrFields: {
+            withCredentials: true
+        },
+        beforeSend: function (xhr, opts) {
+            xhr.setRequestHeader("Authorization", "Basic " + base64_encode('CSS'));
+        },
+        success: function (data, ajaxOptions, response) {                       
+
+            if (data) {
+                if (data.value) {
+                    agendamentoKO.data(data.value);                                                                       
+                } else {
+                    Loader('hide');
+                }
+            }
+            Loader('hide');
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            AlertServerError();
+        }
+    });
+}
+function clearFields() {
+
+    agendamentoKO.data("");
+    agendamentoKO.hora("");
+    agendamentoKO.pacienteId("");
+    agendamentoKO.medicoId(-1);
+    agendamentoKO.especialidade(-1);
+    agendamentoKO.obs("");
+    agendamentoKO.nomePaciente("");
+    agendamentoKO.dataNasc("");
+    agendamentoKO.endereco("");
+    agendamentoKO.bairro("");
+    agendamentoKO.numero("");
+    agendamentoKO.complemento("");
+    agendamentoKO.estado("");
+    agendamentoKO.cidade("");
+
+
+
+}

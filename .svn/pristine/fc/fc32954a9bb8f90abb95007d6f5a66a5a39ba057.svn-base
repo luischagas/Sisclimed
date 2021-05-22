@@ -1,0 +1,177 @@
+﻿@Code
+    ViewData("Title") = "Cadastrar Histórico"
+End Code
+
+
+
+<div id="cfVeiculo" class="container-fluid">
+    <div class="divCadastro">
+        <fieldset>
+            <legend><i class="icon-history" aria-hidden="true"></i> Histórico</legend>
+        </fieldset>
+        <div class="col-xs-12">
+            <div class="col-xs-6 col-lg-6  divFinalizadas checkbox" style="text-align:left;">
+
+            </div>
+            <div class="col-xs-6 col-lg-6" style="text-align:right;">
+                <input type="text" id="txtSearch" class="input-search" alt="lista-historico" placeholder="Pesquisar" />
+            </div>
+        </div>
+        <div class="row">
+            <div id="divHistorico">
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table id="tblHistorico" class="lista-historico table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nome do Paciente</th>
+                                    <th>CPF</th>
+                                    <th>Data </th>
+                                    <th>Hora</th>
+                                    <th>Médico</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyHistoricos" class="tbodyHistoricos" data-bind="foreach: historicoKO.historicoList">
+                                <tr data-bind="attr: { id: 'trHistorico' + historicoId, 'data-Id': historicoId }, event: { dblclick: showModalUPT, doubletap: showModalUPT }">
+                                    <td data-bind="text: nomePaciente"></td>
+                                    <td data-bind="text: cpf"></td>
+                                    <td data-bind="text: moment(data).format('DD/MM/YYYY')"></td>
+                                    <td data-bind="text: hora"></td>
+                                    <td data-bind="text: nomeMedico"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    
+        <div class="modal fade" id="modalNovoCadastroHistorico" data-width="700px" data-dismiss="modal" role="dialog" data-keyboard="true" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                        <h4 class="modal-title" id="myModalLabel">Novo Cadastro de Histórico</h4>
+                    </div>
+                    <form name="form" data-toggle="validator">
+                        <div class="modal-body">
+                            <div class="container-fluid bgFFF">
+
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <div class="form-group col-md-6">
+                                                <label>Nome:</label>
+                                                <input id="txtNome" type="text" class="form-control input-sm" data-bind="textInput:historicoKO.nomePaciente, event: {keypress: enterSearch}" disabled="disabled">
+                                            </div>
+
+                                            <div class="form-group col-md-6">
+                                                <label>Data Nascimento:</label>
+                                                <input id="txtDataNasc" type="text" class="form-control input-sm" data-bind="textInput:historicoKO.dataNasc, event: {keypress: enterSearch}" disabled="disabled">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <div class="form-group col-md-4">
+                                                <label>CPF:</label>
+                                                <input id="txtCPF" type="text" class="form-control input-sm" data-bind="textInput:historicoKO.cpf, event: {keypress: enterSearch}" disabled="disabled">
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label>Data da Consulta:</label>
+                                                <select id="txtData " class="form-control input-sm" data-bind="textInput:historicoKO.data, event: {keypress: enterSearch}" disabled="disabled">
+                                                    <option value="">Tipo</option>
+                                                    <option value="08/05/2016">08/05/2016</option>
+                                                    <option value="10/02/2016">10/02/2016</option>
+                                                    <option value="20/02/2016">20/02/2016</option>
+                                                    <option value="28/02/2016">28/02/2016</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label>Hora da Consulta:</label>
+                                                <select id="txtHora" class="form-control input-sm" data-bind="textInput:historicoKO.hora, event: {keypress: enterSearch}" disabled="disabled">
+                                                    <option value="">Tipo</option>
+                                                    <option value="10:00">10:00</option>
+                                                    <option value="13:00">13:00</option>
+                                                    <option value="14:00">14:00</option>
+                                                    <option value="15:00">15:00</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <div class="form-group col-md-6">
+                                                <label>Médico Responsável:</label>
+                                                <select id="txtMedico " class="slcMedico form-control input-sm" data-bind="textInput:historicoKO.medicoId, event: {keypress: enterSearch}" disabled="disabled"></select>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>Especialidade:</label>
+                                                <select id="txtEspecialidade" class="slcEspecialidade form-control input-sm" data-bind="textInput:historicoKO.especialidade, event: {keypress: enterSearch}" tabindex="10" disabled="disabled"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12">
+
+                                        <div class="row">
+                                            <div class="form-group col-md-12">
+                                                <label>Sintomas</label>
+                                                <textarea rows="3" cols="40" maxlength="300" class="form-control input-sm" id="txtSintomas" placeholder="Descreva os sintomas do paciente." data-bind="textInput:historicoKO.sintomas, event: {keypress: enterSearch}" tabindex="1"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-md-12">
+                                                <label>Evolução</label>
+                                                <textarea rows="3" cols="40" maxlength="300" class="form-control input-sm" id="txtEvolucao" placeholder="Descreva a evolução do paciente." data-bind="textInput:historicoKO.evolucao, event: {keypress: enterSearch}" tabindex="2"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-md-12">
+                                                <label>Receita</label>
+                                                <textarea rows="3" cols="40" maxlength="300" class="form-control input-sm" id="txtReceita" placeholder="Descreva a receita do paciente." data-bind="textInput:historicoKO.receita, event: {keypress: enterSearch}" tabindex="3"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-md-12">
+                                                <label>Exame(s)</label>
+                                                <textarea rows="3" cols="40" maxlength="300" class="form-control input-sm" id="txtExame" placeholder="Descreva os exames do paciente." data-bind="textInput:historicoKO.exames, event: {keypress: enterSearch}" tabindex="4"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+                                    </div>
+                                </div>
+
+                        <div class="modal-footer">
+                            <button id="btnSalvarNovoHistorico" type="button" class="shortcut primary buttonFooter" tabindex="5" required>
+                                <i class="icon-floppy" style="margin-right:5px;"></i>
+                                <span>Salvar</span>
+                            </button>
+                            <button id="btnLimparHistorico" type="button" class="shortcut primary buttonFooter" required>
+                                <i class="icon-remove" style="margin-right:5px;"></i>
+                                <span>Limpar</span>
+                            </button>
+
+                            <button type="button" class="shortcut primary buttonFooter" data-dismiss="modal" aria-hidden="true">
+                                <i class="icon-cancel-2" style="margin-right:5px;"></i>
+                                <span>Fechar</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+        @Scripts.Render("~/bundles/historico")
+
+

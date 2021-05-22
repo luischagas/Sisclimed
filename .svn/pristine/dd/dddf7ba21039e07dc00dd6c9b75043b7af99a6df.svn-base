@@ -1,0 +1,21 @@
+﻿<appSettings>
+
+  <add key="DEBUG_MODE" value="True"/>
+  
+  <!--======================================================-->
+
+  <add key="SisclimedConnectionString" value=""/>
+
+  <add key="SisclimedConnectionString" value ="Server=localhost; Initial Catalog=Sisclimed_BD; User ID=sisclimed; Password=sisclimed#88; Connection Timeout = 10;"/>
+
+  <add key="SisclimedConnectionString_Debug" value ="Server=192.168.2.72; Initial Catalog=Sisclimed_BD; User ID=sisclimed; Password=sisclimed#88; Connection Timeout = 10;"/>
+  
+  
+  <!--======================================================-->
+  
+  <add key="webpages:Version" value="3.0.0.0" />
+  <add key="webpages:Enabled" value="false" />
+  <add key="ClientValidationEnabled" value="true" />
+  <add key="UnobtrusiveJavaScriptEnabled" value="true" />
+  
+</appSettings>
